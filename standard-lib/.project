@@ -1,0 +1,12 @@
+{
+	Files: {
+		"Object.ql",
+		"Output.ql",
+		"Math.ql",
+		"String.ql",
+		"Table.ql",
+		"IO/File.ql",
+	},
+	Dependencies: {},
+	Entrypoint: "Quill.Compiler::Program:Main"
+}
