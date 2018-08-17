@@ -1,9 +1,9 @@
 -- badly written
 
 -- it's a bootstrap compiler, don't judge
-local compiler = require("quill-compiler")
--- lua qcc.lua -p=compiler/.project -i abc
--- lua qcc.lua -p=compiler/.project -i ./compiler-test/Test.ql -o=compilertest
+-- but mostly cuz I never planned on making this open source
+local compiler = require("./bootstrap/quill-compiler")
+local source
 local input
 local output
 local execute = false
@@ -55,39 +55,23 @@ function readfile(file)
 	return result
 end
 
-local src = readfile(input)
+if project then
+	local src = readfile(input .. "/.project")
+	source = compiler.compileProject(input, src)
+else
+	local src = readfile(input)
+	source = compiler.compile(src)
+end
+
 local dst = io.open(output, "w+")
-
-local function s(v, t)
-	if type(v) == "string" then
-		return "\"" .. v .. "\""
-	elseif type(v) == "table" then
-		return stringify(v, t + 1)
-	else
-		return tostring(v)
-	end
-end
-
-function stringify(tbl, tabs)
-	local result = "{"
-	tabs = tabs or 1
-	local first = true
-	for k,v in pairs(tbl) do
-		if k ~= "fault_data" then
-			result = result .. (first and "" or ",") .. "\n" .. ("    "):rep(tabs) .. k .. " = " .. s(v, tabs)
-			first = false
-		end
-	end
-	return result .. "\n" .. ("    "):rep(tabs - 1) .. "}"
-end
-
-local source = project and compiler.compileProject(src) or compiler.compile(src)
 dst:write(source)
 dst:flush()
 
 if execute then
+	print("Done compiling")
 	local s,e=(load or loadstring)("local args=(...);" .. source)
 	if not s then error(e, 0) end
+	print("Executing program...")
 	s(execArgs)
 end
 --[[

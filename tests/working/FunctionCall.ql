@@ -1,9 +1,8 @@
 class Program
 
 	function Main()
-		local a = 3
-		a = 4
-		return a
+		print(2)
+		return 0
 	end
 
 end

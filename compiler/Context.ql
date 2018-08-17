@@ -12,7 +12,7 @@ class Context
 		return self[field] ~= nil
 	end
 
-	self[field]
+	--[[self[field]
 		local context = self
 		local result
 		repeat
@@ -24,6 +24,6 @@ class Context
 
 	self[field] = value
 		self.Data[field] = value
-	end
+	end]]
 
 end

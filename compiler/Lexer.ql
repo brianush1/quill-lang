@@ -69,7 +69,7 @@ class Lexer
 	end
 
 	function IsDigit(char)
-		return "0123456789":Contains(char)
+		return ".0123456789":Contains(char)
 	end
 	
 	function IsOperator(char)
@@ -89,7 +89,19 @@ class Lexer
 	end
 
 	function ParseNumber()
-		return self:ReadWhile(self:IsDigit)
+		local result = ""
+		local hasDecimal = false
+		while not self:CharEOF() and self:IsDigit(self:PeekChar()) do
+			if self:PeekChar() == "." then
+				if hasDecimal then
+					break
+				else
+					hasDecimal = true
+				end
+			end
+			result = result + self:ReadChar()
+		end
+		return result
 	end
 
 	function ReadToken()
@@ -161,7 +173,7 @@ class Lexer
 		if type == nil then return self:Read() end
 		if not self:IsNext(type, value) then
 			local token = self:Peek()
-			self:Fault("bad token", token.TokenStart, token.Value.Length) -- TODO
+			self:Fault("expected '" + value + "'" + ", got '" + token.Value + "'", token.TokenStart, token.Value.Length) -- TODO
 		end
 		return self:Read()
 	end

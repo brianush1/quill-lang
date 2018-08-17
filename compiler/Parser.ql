@@ -21,7 +21,7 @@ class Parser
 		return 0
 	end
 
-	function ParseAtom()
+	function ParseTrueAtom()
 		if self.Lexer:IsNext("Number") then
 			return {
 				Type: "Number",
@@ -50,6 +50,10 @@ class Parser
 		end
 	end
 
+	function ParseAtom()
+		return self:MaybeCall(self:ParseTrueAtom)
+	end
+
 	function MaybeBinary(atom, precedence)
 		atom = if TypeOf(atom) == "function" then atom() else atom
 		if self.Lexer:IsNext("Operator") then
@@ -73,8 +77,33 @@ class Parser
 		return atom
 	end
 
+	function ParseCall(atom, statement)
+		self.Lexer:Next()
+		local arg = self:ParseExpression()
+		self.Lexer:Next("Punctuation", ")")
+		local result = {
+			Type: if statement then "Statement" else "Call",
+			TypeInfo: {
+				Deterministic: false,
+				Type: "any" -- TODO: better inferencing
+			},
+			Function: atom,
+			Args: {[1]: arg}
+		}
+		if statement then
+			result.Statement = "Call"
+		end
+
+		return result
+	end
+
+	function MaybeCall(atom)
+		atom = if TypeOf(atom) == "function" then atom() else atom
+		return if self.Lexer:IsNext("Punctuation", "(") then self:ParseCall(atom) else atom
+	end
+
 	function ParseExpression()
-		return self:MaybeBinary(self:ParseAtom, 0)
+		return self:MaybeCall(self:MaybeBinary(self:ParseAtom, 0))
 	end
 
 	function ParseStatement()
@@ -87,13 +116,24 @@ class Parser
 			}
 		elseif self.Lexer:IsNext("Identifier") then
 			local name = self.Lexer:Next().Value
-			self.Lexer:Next("Operator", "=")
-			return {
-				Type: "Statement",
-				Statement: "Assignment",
-				Name: name,
-				Value: self:ParseExpression()
-			}
+			if self.Lexer:IsNext("Punctuation", "(") then
+				return self:ParseCall({
+					Type: "Identifier",
+					TypeInfo: { -- TODO: better type inference
+						Deterministic: false,
+						Type: "any"
+					},
+					Name: name
+				}, true)
+			else
+				self.Lexer:Next("Operator", "=")
+				return {
+					Type: "Statement",
+					Statement: "Assignment",
+					Name: name,
+					Value: self:ParseExpression()
+				}
+			end
 		elseif self.Lexer:IsNext("Keyword", "local") then
 			self.Lexer:Next()
 			local Name = self.Lexer:Next("Identifier").Value

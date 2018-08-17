@@ -603,7 +603,7 @@ function compile(scope, expr, data)
 		end
 		q[#q+1] = "}"
 	else
-		table.foreach(expr, print)
+		for k,v in pairs(expr)do print(k,v)end
 		os.exit(1)
 		--error("oops " .. expr.type, 0)
 	end
@@ -693,20 +693,39 @@ local compiler;compiler = {
 		end
 		return header .. compile(nil, src) .. "__makeconsts()os.exit(__ns.Program():Main(strn(args)))"
 	end,
-	compileProject = function(src)
-		for _, pass in ipairs(compiler.passes) do
-			src = pass(src, "Project", true)
+	compileProject = function(file, src)
+		local function readProjectFile(src)
+			for _, pass in ipairs(compiler.passes) do
+				src = pass(src, "Project File", true)
+			end
+			local result = (load or loadstring)("function __tablify(...)return...end local ns={System={String=function(...)return...end}}" .. compile(makeScope(), src))()
+			local dependencies = result.Dependencies
+			for i = 1, dependencies.Length do
+				local filehandle = io.open(file .. "/../" .. dependencies[i] .. "/.project", "r")
+				if filehandle == nil then
+					print("error: specified dependency doesn't exist")
+					os.exit()
+				end
+				local contents = filehandle:read("*a")
+				io.close(filehandle)
+				local prj = readProjectFile(contents)
+				for j = 1, prj.Files.Length do
+					result.Files[#result.Files + 1] = "../" .. dependencies[i] .. "/" .. prj.Files[j]
+				end
+			end
+			return result
 		end
-		local project = (load or loadstring)("function __tablify(...)return...end local ns={System={String=function(...)return...end}}" .. compile(makeScope(), src))()
+		local project = readProjectFile(src)
 		local result = header
-		for _, v in ipairs(project.files) do
-			local src = readfile(v)
+		for _, v in ipairs(project.Files) do
+			print("Compiling " .. file .. "/" .. v)
+			local src = readfile(file .. "/" .. v)
 			for _, pass in ipairs(compiler.passes) do
 				src = pass(src, v)
 			end
 			result = result .. compile(nil, src)
 		end
-		return result .. "__makeconsts()os.exit(ns['Quill.Compiler'].Program():Main(strn(args)))"
+		return result .. "__makeconsts()os.exit(ns['" .. project.EntryNamespace .. "'].Program():Main(strn(args)))"
 	end,
 	passes = {
 		function(code, file, singleExpr)

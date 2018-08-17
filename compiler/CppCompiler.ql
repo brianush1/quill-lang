@@ -16,7 +16,7 @@ class CppCompiler
 		
 		nevermind above, issue is that conversion and checking for conversion will lead to slower execution
 
-		Quill types (so far): number (0)
+		Quill types (so far): nil (65535), number (0)
 		Lua types (reference): nil, number, boolean, string, table, function, thread, userdata
 
 		Values are stored in rax
@@ -47,6 +47,8 @@ class CppCompiler
 				return "\n\tstruct qlvalue " + self:FixName("variable", item.Name) + " = " + self:Compile(item.Value) + ";"
 			elseif item.Statement == "Assignment" then
 				return "\n\t" + self:FixName("variable", item.Name) + " = " + self:Compile(item.Value) + ";"
+			elseif item.Statement == "Call" then
+				return "\n\t" + self:Compile(item.Function) + "(" + self:Compile(item.Args[1]) + ");"
 			end
 		elseif item.Type == "Number" then
 			return "qlnumber((double)" + item.Value + ")"
@@ -75,6 +77,8 @@ class CppCompiler
 			end
 
 			return result
+		elseif item.Type == "Call" then
+			return self:Compile(item.Function) + "(" + self:Compile(item.Args[1]) + ")"
 		end
 		__lua.error(("oops " + item.Type).__native) -- TODO
 	end
@@ -162,7 +166,19 @@ struct qlvalue qlmul(struct qlvalue a, struct qlvalue b) {
 	return result;
 }
 
+struct qlvalue qlnil;
+
+// TODO: temporary, remove
+struct qlvalue l_variable_print(struct qlvalue thing) {
+	if (thing.type == 0) {
+		printf(\"%.14g\\n\", thing.data.number);
+	}
+
+	return qlnil;
+}
+
 " + self:Compile(ast) + "int main() {
+	qlnil.type = 65535;
 	double result = l_method_Program_Main().data.number;
 	int status = (int)result;
 	if ((double)status != result) {

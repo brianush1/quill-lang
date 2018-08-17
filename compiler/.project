@@ -4,10 +4,8 @@
 		"Lexer.ql",
 		"Parser.ql",
 		"CppCompiler.ql",
-		"AssemblyCompiler.ql",
-		"Optimizer.ql",
 		"Context.ql"
 	},
 	Dependencies: {"standard-lib"},
-	Entrypoint: "Quill.Compiler::Program:Main"
+	EntryNamespace: "Quill.Compiler"
 }
