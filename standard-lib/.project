@@ -5,7 +5,9 @@
 		"Math.ql",
 		"String.ql",
 		"Table.ql",
+		"Process.ql",
 		"IO/File.ql",
+		"IO/Directory.ql",
 	},
 	Dependencies: {},
 	Entrypoint: "Quill.Compiler::Program:Main"

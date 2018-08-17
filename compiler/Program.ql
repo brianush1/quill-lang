@@ -30,11 +30,12 @@ class Program
 		local compiler = new CppCompiler()
 		outputFile:Write(compiler:CompileProgram(ast))
 		outputFile:Flush()
-		__lua.os.execute(("gcc " + output + ".c -o compilertest.exe -O3").__native)
-		--__lua.os.execute(("nasm -f win64 " + output + ".asm").__native)
-		--__lua.os.execute(("GoLink.exe /console /entry _start " + output + ".obj msvcrt.dll").__native)
+		new Process("gcc.exe", output + ".c -o " + output + ".exe -O3")
+		--new Process("nasm -f win64 " + output + ".asm")
+		--new Process("GoLink.exe /console /entry _start " + output + ".obj msvcrt.dll")
 
-		Output:Log("Status code:", __lua.select(3, __lua.os.execute("compilertest.exe".__native)))
+		local process = new Process(output + ".exe")
+		Output:Log("Exit code:", process.ExitCode)
 
 		return 0
 	end

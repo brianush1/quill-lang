@@ -111,8 +111,9 @@ end
 local compiler = ins.CppCompiler();
 outputFile:Write(compiler:CompileProgram(ast));
 outputFile:Flush();
-ins.__lua.os.execute((((ns.System.String "gcc ") + output) + (ns.System.String ".c -o compilertest.exe -O3")).__native);
-ins.Output:Log((ns.System.String "Status code:"), ins.__lua.select(3, ins.__lua.os.execute((ns.System.String "compilertest.exe").__native)));
+local gcc = ins.Process((ns.System.String "gcc.exe"), (((output + (ns.System.String ".c -o ")) + output) + (ns.System.String ".exe -O3")));
+local process = ins.Process((output + (ns.System.String ".exe")));
+ins.Output:Log((ns.System.String "Exit code:"), process.ExitCode);
 return 0;
 end
 end
@@ -715,6 +716,28 @@ end
 end
 end
 do
+local __ns = ns['System'] or {}
+local included = {'System'}
+local ins = setmetatable({TypeOf = function(x) return ns.System.String(type(x)) end, __lua = _ENV or getfenv()}, {__index = function(_,k)
+	for i, v in next, included do
+		if ns[v][k] then
+			return ns[v][k]
+		end
+	end
+end})
+ns['System'] = __ns
+do local __class = ___class.new() __ns.Process = __class
+function __class:__init(file, args)
+local command = file:Replace((ns.System.String "/"), ns['System.IO'].Directory.PathSeparator);
+if (args ~= (nil)) then
+command = ((command + (ns.System.String " ")) + args);
+end
+;
+self.ExitCode = ins.__lua.select(3, ins.__lua.os.execute(command.__native));
+end
+end
+end
+do
 local __ns = ns['System.IO'] or {}
 local included = {'System.IO'}
 local ins = setmetatable({TypeOf = function(x) return ns.System.String(type(x)) end, __lua = _ENV or getfenv()}, {__index = function(_,k)
@@ -762,6 +785,21 @@ end
 function __class:Flush()
 self.__file:flush();
 end
+end
+end
+do
+local __ns = ns['System.IO'] or {}
+local included = {'System.IO'}
+local ins = setmetatable({TypeOf = function(x) return ns.System.String(type(x)) end, __lua = _ENV or getfenv()}, {__index = function(_,k)
+	for i, v in next, included do
+		if ns[v][k] then
+			return ns[v][k]
+		end
+	end
+end})
+ns['System.IO'] = __ns
+do local __class = ___class.new() __ns.Directory = __class
+__regconst(__ns.Directory, 'PathSeparator', function() return ns['System'].String(ins.__lua.package.config:sub(1, 1)) end);
 end
 end
 __makeconsts()os.exit(ns['Quill.Compiler'].Program():Main(strn(args)))
