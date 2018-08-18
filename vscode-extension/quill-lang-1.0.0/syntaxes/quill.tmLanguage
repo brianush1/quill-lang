@@ -286,7 +286,7 @@
 		<key>keyword</key>
 		<dict>
 			<key>match</key>
-			<string>\b(break|do|else|for|if|elseif|return|then|repeat|while|until|end|function|local|in|class|inherits|base|new|self|meta)\b</string>
+			<string>\b(function|return|end|local|class|new|namespace|self|using|const|for|in|do|if|else|elseif|then|enum|nil|while|break|false|true|repeat|until)\b</string>
 			<key>name</key>
 			<string>keyword.control.quill</string>
 		</dict>
