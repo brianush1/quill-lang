@@ -1,0 +1,6 @@
+[package]
+name = "qrcc"
+version = "0.1.0"
+authors = ["king1600", "brianush1"]
+
+[dependencies]
